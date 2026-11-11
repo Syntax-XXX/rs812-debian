@@ -1,4 +1,4 @@
-# NAS-Konsole mitschreiben und Bootloader anhalten (sendet nur Ctrl-C, sobald die Abbruch-Meldung kommt)
+# Log the NAS console and stop the bootloader (only sends Ctrl-C once the autoboot prompt appears)
 import serial, time, re, sys
 s = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.1)
 log = open('/root/nas-console.log', 'ab', buffering=0)

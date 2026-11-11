@@ -1,4 +1,4 @@
-# Einen Befehl an den NAS-Bootloader senden und die Antwort zeigen:  python3 /root/nasc.py "printenv" [wartezeit]
+# Send one command to the NAS bootloader and show the reply:  python3 nasc.py "printenv" [wait seconds]
 import serial, sys, time
 s = serial.Serial('/dev/ttyUSB0', 115200, timeout=0.2)
 s.reset_input_buffer()

@@ -1,15 +1,15 @@
 #!/bin/bash
-# Debian 12 (armel) Root-Dateisystem für die RS812 bauen.
+# Build the Debian 12 (armel) root filesystem for the RS812.
 #   apt install debootstrap qemu-user-static binfmt-support
-#   ./build-rootfs.sh /srv/rs812-root /pfad/zu/out-flash/modules/lib/modules
-# Passwort für root/admin wird abgefragt; SSH-Schlüssel aus ~/.ssh/*.pub werden übernommen.
+#   ./build-rootfs.sh /srv/rs812-root /path/to/out-flash/modules/lib/modules
+# Asks for the root/admin password; SSH keys from ~/.ssh/*.pub are copied.
 set -euo pipefail
 R=${1:?Zielordner}; MODS=${2:?Modulordner (…/lib/modules)}; HERE=$(cd "$(dirname "$0")" && pwd)
-read -rsp "Passwort für root und admin: " PW; echo
+read -rsp "Password for root and admin: " PW; echo
 debootstrap --arch=armel --foreign --variant=minbase --include=systemd-sysv,udev,openssh-server,mdadm,nfs-kernel-server,smartmontools,hdparm,ifupdown,iproute2,iputils-ping,sudo,curl,rsync,htop,ca-certificates,systemd-timesyncd,kmod,procps,less,nano,cron,e2fsprogs,dbus,lm-sensors,net-tools,mtd-utils,ethtool bookworm "$R" http://deb.debian.org/debian
 cp /usr/bin/qemu-arm-static "$R/usr/bin/"
 chroot "$R" /debootstrap/debootstrap --second-stage
-# Module nach usr/lib (Debian 12: /lib ist ein Verweis auf usr/lib – nicht überschreiben!)
+# modules into usr/lib (Debian 12: /lib is a symlink to usr/lib – don't overwrite it!)
 mkdir -p "$R/usr/lib/modules" && cp -a "$MODS"/. "$R/usr/lib/modules/"
 cp -a "$HERE/files/." "$R/"
 mv "$R/etc/mdadm/mdadm.conf.example" "$R/etc/mdadm/mdadm.conf"
@@ -20,4 +20,4 @@ printf 'root:%s\nadmin:%s\n' "$PW" "$PW" | chroot "$R" chpasswd
 for d in "$R/root/.ssh" "$R/home/admin/.ssh"; do mkdir -p "$d"; cat ~/.ssh/*.pub > "$d/authorized_keys" 2>/dev/null || true; done
 chroot "$R" chown -R admin:admin /home/admin/.ssh
 rm -f "$R/usr/bin/qemu-arm-static"
-echo "Fertig: $R  (vor dem Einspielen: etc/network/interfaces, etc/fstab, etc/mdadm/mdadm.conf, etc/exports anpassen)"
+echo "Done: $R  (before copying adapt etc/network/interfaces, etc/fstab, etc/mdadm/mdadm.conf, etc/exports)"

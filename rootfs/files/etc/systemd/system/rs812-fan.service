@@ -1,5 +1,5 @@
 [Unit]
-Description=RS812 Lüfterregelung nach Plattentemperatur
+Description=RS812 fan control by disk temperature
 After=local-fs.target
 
 [Service]

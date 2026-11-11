@@ -1,7 +1,7 @@
-# System-RAID (sda1-sdc1) und Swap (sda2-sdc2)
+# system RAID (sda1-sdc1) and swap (sda2-sdc2)
 /dev/md0  /         ext4  noatime,errors=remount-ro  0 1
 /dev/md1  none      swap  sw                         0 0
-# Daten aus DSM (Volume 1-3), Kennung der Dateisysteme
+# data from DSM (volume 1-3), by filesystem UUID
 UUID=54384b3c-cf12-4de7-b706-c9304e5b182c  /volume1  ext4  noatime,nofail  0 2
 UUID=5683bf22-0e55-4181-ac29-90e71e428762  /volume2  ext4  noatime,nofail  0 2
 UUID=d11e676f-e1a2-49a4-8b06-80484db09301  /volume3  ext4  noatime,nofail  0 2

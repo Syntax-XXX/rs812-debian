@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
- * Synology RS812 (Marvell 88F6282, 512 MB, 4x SATA über PCIe 88SX7042, 2x GbE)
- * Basis: kirkwood-rs411.dts ("RS411 RS812"), ergänzt um PCIe-SATA wie DS411.
- * Interner SATA-Controller aus: belegt sonst mpp20/21, die eth1 (LAN 2) braucht.
- * Lüfter: Variante -1 (Alarm nur mpp35); -3 kollidiert auf mpp44 mit den HDD-LEDs.
+ * Synology RS812 (Marvell 88F6282, 512 MB, 4x SATA via PCIe 88SX7042, 2x GbE)
+ * Based on kirkwood-rs411.dts ("RS411 RS812"), plus PCIe SATA like the DS411.
+ * Internal SATA controller off: it would take mpp20/21, which eth1 (LAN 2) needs.
+ * Fan: variant -1 (alarm only mpp35); -3 clashes with the HDD LEDs on mpp44.
  */
 /dts-v1/;
 

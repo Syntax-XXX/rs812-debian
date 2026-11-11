@@ -1,4 +1,4 @@
-# RS812: System-RAID (Partition 1, 0.90 für den Kernel-Start) + Swap (Partition 2) + Daten-Volumes aus DSM
+# RS812: system RAID (partition 1, 0.90 for kernel boot) + swap (partition 2) + data volumes from DSM
 HOMEHOST <ignore>
 MAILADDR root
 ARRAY /dev/md2 metadata=1.2 UUID=1b168312:4842004c:24da95ee:7e1b3d3b
