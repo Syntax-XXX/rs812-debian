@@ -1,0 +1,66 @@
+[
+ {
+  "name": "Dashboard",
+  "hostname": "http://10.40.32.108:3000",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/homarr.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-0"
+ },
+ {
+  "name": "AdGuard",
+  "hostname": "http://10.40.32.108:3080",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/adguard-home.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-1"
+ },
+ {
+  "name": "Immich",
+  "hostname": "http://10.40.32.88:2283",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/immich.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-2"
+ },
+ {
+  "name": "Uptime Kuma",
+  "hostname": "http://10.40.32.108:3001",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/uptime-kuma.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-3"
+ },
+ {
+  "name": "Für Mia",
+  "hostname": "http://10.40.32.108:3600",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/homer.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-4"
+ },
+ {
+  "name": "Proxmox pve2",
+  "hostname": "https://10.40.32.69:8006",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/proxmox.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-5"
+ },
+ {
+  "name": "Proxmox pve1",
+  "hostname": "https://10.40.32.67:8006",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/proxmox.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-6"
+ },
+ {
+  "name": "FRITZ!Box",
+  "hostname": "http://10.40.32.1",
+  "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/openwrt.svg",
+  "app_type": "LinkApp",
+  "status": "running",
+  "id": "rs812-link-7"
+ }
+]

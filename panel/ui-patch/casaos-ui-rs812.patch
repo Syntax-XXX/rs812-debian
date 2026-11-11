@@ -1,0 +1,420 @@
+diff --git a/package.json b/package.json
+index 9e73bdb..481dbf8 100644
+--- a/package.json
++++ b/package.json
+@@ -16,8 +16,6 @@
+   "dependencies": {
+     "@fontsource/roboto": "^5.0.5",
+     "@icewhale/casaos-appmanagement-openapi": "latest",
+-    "@icewhale/casaos-openapi": "latest",
+-    "@icewhale/icewhale-files-openapi": "latest",
+     "@kangc/v-md-editor": "^1.7.11",
+     "@mdi/font": "^6.9.96",
+     "@tiptap/core": "^2.0.4",
+diff --git a/public/index.html b/public/index.html
+index 40a3b3a..335f71f 100644
+--- a/public/index.html
++++ b/public/index.html
+@@ -14,13 +14,13 @@
+ 	<link href="<%= BASE_URL %>favicon.ico" mask="" rel="icon" sizes="any">
+ 	<link href="<%= BASE_URL %>css/custom.css" rel="stylesheet">
+ 	<title>
+-		CasaOS
++		RackStation
+ 	</title>
+ </head>
+ 
+ <body>
+ 	<noscript>
+-		<strong>We're sorry but CasaOS doesn't work properly without JavaScript enabled.
++		<strong>We're sorry but RackStation doesn't work properly without JavaScript enabled.
+ 			Please enable it to continue.</strong>
+ 	</noscript>
+ 	<div id="app"></div>
+diff --git a/src/App.vue b/src/App.vue
+index e43c749..f2a1511 100644
+--- a/src/App.vue
++++ b/src/App.vue
+@@ -12,7 +12,7 @@
+ 						   v-animate-css="brandAni"></brand-bar>
+ 				<!-- BrandBar End -->
+ 				<!-- ContactBar Start -->
+-				<contact-bar v-if="!$store.state.isMobile && $router.currentRoute.path === '/'"
++				<contact-bar v-if="false"
+ 							 v-animate-css="contactAni"></contact-bar>
+ 				<!-- ContactBar End -->
+ 			</div>
+diff --git a/src/assets/img/app/rs812-admin.svg b/src/assets/img/app/rs812-admin.svg
+new file mode 100644
+index 0000000..014d7d6
+--- /dev/null
++++ b/src/assets/img/app/rs812-admin.svg
+@@ -0,0 +1 @@
++<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5ad1ff"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><rect x="4" y="4" width="56" height="56" rx="14" fill="url(#g)"/><rect x="14" y="16" width="36" height="10" rx="3" fill="#fff" opacity=".95"/><rect x="14" y="30" width="36" height="10" rx="3" fill="#fff" opacity=".85"/><rect x="14" y="44" width="36" height="6" rx="3" fill="#fff" opacity=".6"/><circle cx="20" cy="21" r="2" fill="#22c55e"/><circle cx="20" cy="35" r="2" fill="#22c55e"/><rect x="34" y="19.5" width="12" height="3" rx="1.5" fill="#2563eb" opacity=".5"/><rect x="34" y="33.5" width="12" height="3" rx="1.5" fill="#2563eb" opacity=".5"/></svg>
+diff --git a/src/components/Apps/AppCard.vue b/src/components/Apps/AppCard.vue
+index 0095bab..f303eac 100644
+--- a/src/components/Apps/AppCard.vue
++++ b/src/components/Apps/AppCard.vue
+@@ -16,7 +16,7 @@ export default {
+     CTooltip: cTooltip,
+   },
+   mixins: [business_ShowNewAppTag, business_OpenThirdApp, business_LinkApp, commonI18n],
+-  inject: ['homeShowFiles', 'openAppStore'],
++  inject: ['homeShowFiles', 'openAppStore', 'homeShowAdmin'],
+   props: {
+     item: {
+       type: Object,
+@@ -180,6 +180,9 @@ export default {
+         case 'Files':
+           this.homeShowFiles()
+           break
++        case 'Verwaltung':
++          this.homeShowAdmin()
++          break
+         default:
+           break
+       }
+diff --git a/src/components/Apps/AppSection.vue b/src/components/Apps/AppSection.vue
+index 2835657..ac5a4b5 100644
+--- a/src/components/Apps/AppSection.vue
++++ b/src/components/Apps/AppSection.vue
+@@ -115,11 +115,11 @@ const SYNCTHING_STORE_ID = 74
+ const builtInApplications = [
+ 	{
+ 		id: '1',
+-		name: 'App Store',
++		name: 'Verwaltung',
+ 		title: {
+-			en_us: 'App Store'
++			en_us: 'Verwaltung'
+ 		},
+-		icon: require(`@/assets/img/app/appstore.svg`),
++		icon: require(`@/assets/img/app/rs812-admin.svg`),
+ 		status: 'running',
+ 		app_type: 'system'
+ 	},
+diff --git a/src/components/BrandBar.vue b/src/components/BrandBar.vue
+index 2f3dd8a..3916bf4 100644
+--- a/src/components/BrandBar.vue
++++ b/src/components/BrandBar.vue
+@@ -1,9 +1,7 @@
+ <template>
+ 	<div class="brand-bar is-flex is-align-items-flex-end has-text-white">
+-		<figure class="image _is-136x26 mb-3">
+-			<img alt="logo" srcset="../assets/img/logo/logo.svg 2x, ../assets/img/logo/logo.png 1x">
+-		</figure>
+-		<span v-if="!rssShow || rss.length === 0" class="intro-text ml-4">Made with ❤️ by IceWhale and YOU!</span>
++		<span class="rs812-brand mb-2">RackStation</span>
++		<span v-if="!rssShow || rss.length === 0" class="intro-text ml-4">Debian 12 · Oberfläche basiert auf CasaOS-UI (Apache-2.0)</span>
+ 		<span v-else class="window ml-4">
+ 			<ul :style="{ '--time': 5 * line + 's', '--perc': perc, '--line': line }" class="scroll">
+ 				<li v-for="(item, key) in rss" :key="key" class="has-text-left" @click="$messageBus('connect_news')">
+@@ -175,4 +173,5 @@ export default {
+ }
+ 
+ // -----------------scroll end-----------------
++.rs812-brand { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+ </style>
+diff --git a/src/components/rs812/AdminPanel.vue b/src/components/rs812/AdminPanel.vue
+new file mode 100644
+index 0000000..4d037fc
+--- /dev/null
++++ b/src/components/rs812/AdminPanel.vue
+@@ -0,0 +1,247 @@
++<template>
++	<div class="modal-card rs812-admin">
++		<header class="modal-card-head">
++			<div class="is-flex-grow-1">
++				<h3 class="title is-header">Verwaltung · {{ ov.hostname || 'RackStation' }}</h3>
++			</div>
++			<b-icon class="close-button" icon="close-outline" pack="casa" @click.native="$emit('close')" />
++		</header>
++		<section class="modal-card-body">
++			<b-tabs v-model="tab" :animated="false" @input="onTab">
++				<!-- Übersicht -->
++				<b-tab-item label="Übersicht" class="scrollbars-light-auto tab-item">
++					<div class="columns is-multiline">
++						<div class="column is-half" v-for="c in cards" :key="c.k">
++							<div class="tile-box">
++								<p class="tile-label">{{ c.k }}</p>
++								<p class="tile-value">{{ c.v }}</p>
++								<p class="tile-sub" v-if="c.s">{{ c.s }}</p>
++							</div>
++						</div>
++					</div>
++					<h4 class="sub-head">Energie</h4>
++					<div class="buttons">
++						<b-button rounded size="is-small" type="is-primary" @click="power('reboot')">Neu starten</b-button>
++						<b-button rounded size="is-small" type="is-danger" @click="power('poweroff')">Herunterfahren</b-button>
++					</div>
++				</b-tab-item>
++
++				<!-- Platten & RAID -->
++				<b-tab-item label="Platten & RAID" class="scrollbars-light-auto tab-item">
++					<div v-for="d in ov.disks || []" :key="d.name" class="row-box">
++						<div class="is-flex is-align-items-center">
++							<span class="disk-emoji mr-3">💽</span>
++							<div class="is-flex-grow-1">
++								<p class="has-text-weight-semibold">{{ d.name }} · {{ d.model }}</p>
++								<p class="is-size-7 has-text-grey">
++									{{ size(d.size) }} · {{ d.standby ? 'schläft' : (d.temperature + ' °C') }} · {{ d.power_on_hours }} h
++									· SN {{ d.serial || '–' }}
++									<span v-if="d.reallocated || d.pending" class="has-text-danger"> · {{ d.reallocated }} ersetzte / {{ d.pending }} wartende Sektoren</span>
++								</p>
++							</div>
++							<b-tag :type="d.health ? 'is-success' : 'is-danger'" rounded>{{ d.health ? 'Gesund' : 'Prüfen!' }}</b-tag>
++							<b-button class="ml-2" rounded size="is-small" @click="smart(d.name)">SMART</b-button>
++						</div>
++					</div>
++					<h4 class="sub-head">RAID</h4>
++					<div v-for="m in ov.raid || []" :key="m.name" class="row-box">
++						<p class="has-text-weight-semibold">{{ m.name }} · {{ m.level }} · {{ m.mount || '–' }}</p>
++						<p class="is-size-7 has-text-grey">{{ m.members.join(', ') }} · {{ m.status }} <span v-if="m.sync" class="has-text-warning">· {{ m.sync }}</span></p>
++					</div>
++					<pre v-if="smartText" class="log-box">{{ smartText }}</pre>
++				</b-tab-item>
++
++				<!-- Freigaben -->
++				<b-tab-item label="Freigaben (NFS)" class="scrollbars-light-auto tab-item">
++					<p class="is-size-7 has-text-grey mb-2">Inhalt von <code>/etc/exports</code>. Beim Speichern wird geprüft; bei einem Fehler bleiben die alten Freigaben aktiv.</p>
++					<b-input v-model="exportsText" type="textarea" custom-class="mono" rows="9" />
++					<div class="buttons mt-3">
++						<b-button rounded size="is-small" type="is-primary" :loading="busy" @click="saveExports">Speichern &amp; anwenden</b-button>
++					</div>
++					<h4 class="sub-head">Aktiv</h4>
++					<pre class="log-box">{{ exportsActive }}</pre>
++				</b-tab-item>
++
++				<!-- Dienste -->
++				<b-tab-item label="Dienste" class="scrollbars-light-auto tab-item">
++					<div v-for="s in services" :key="s.name" class="row-box is-flex is-align-items-center">
++						<span class="dot" :class="s.ActiveState === 'active' ? 'on' : 'off'"></span>
++						<div class="is-flex-grow-1">
++							<p class="has-text-weight-semibold">{{ s.Description || s.name }}</p>
++							<p class="is-size-7 has-text-grey">{{ s.name }} · {{ s.ActiveState }} ({{ s.SubState }}) · Autostart: {{ s.UnitFileState }}</p>
++						</div>
++						<div class="buttons">
++							<b-button rounded size="is-small" @click="svc(s.name, 'restart')">Neustart</b-button>
++							<b-button v-if="s.ActiveState === 'active'" rounded size="is-small" @click="svc(s.name, 'stop')">Stopp</b-button>
++							<b-button v-else rounded size="is-small" type="is-primary" @click="svc(s.name, 'start')">Start</b-button>
++							<b-button rounded size="is-small" @click="showLogs(s.name)">Log</b-button>
++						</div>
++					</div>
++				</b-tab-item>
++
++				<!-- Updates & Pakete -->
++				<b-tab-item label="Updates" class="scrollbars-light-auto tab-item">
++					<div class="buttons">
++						<b-button rounded size="is-small" :loading="busy" @click="checkUpdates">Nach Updates suchen</b-button>
++						<b-button rounded size="is-small" type="is-primary" :disabled="!updates.length || jobRunning" @click="installUpdates">{{ updates.length }} Updates installieren</b-button>
++					</div>
++					<ul class="is-size-7 mb-3"><li v-for="u in updates" :key="u">{{ u }}</li></ul>
++					<b-field label="Paket installieren (apt)">
++						<b-input v-model="pkg" placeholder="z. B. htop samba" size="is-small" />
++						<p class="control"><b-button size="is-small" :disabled="!pkg || jobRunning" @click="installPkg">Installieren</b-button></p>
++					</b-field>
++					<pre v-if="jobOut" class="log-box">{{ jobOut }}</pre>
++				</b-tab-item>
++
++				<!-- Protokolle -->
++				<b-tab-item label="Protokolle" class="scrollbars-light-auto tab-item">
++					<div class="buttons">
++						<b-button rounded size="is-small" @click="showLogs('')">System</b-button>
++						<b-button rounded size="is-small" @click="showLogs('', true)">Kernel</b-button>
++						<b-button rounded size="is-small" @click="showLogs('nfs-server.service')">NFS</b-button>
++						<b-button rounded size="is-small" @click="showLogs('rs812-fan.service')">Lüfter</b-button>
++					</div>
++					<pre class="log-box tall">{{ logText }}</pre>
++				</b-tab-item>
++			</b-tabs>
++		</section>
++	</div>
++</template>
++
++<script>
++import { api } from '@/service/service.js'
++
++export default {
++	name: 'rs812-admin-panel',
++	data () {
++		return {
++			tab: 0, ov: {}, timer: null, busy: false, smartText: '',
++			exportsText: '', exportsActive: '', services: [], updates: [],
++			pkg: '', jobId: '', jobOut: '', jobRunning: false, logText: ''
++		}
++	},
++	computed: {
++		cards () {
++			const o = this.ov
++			if (!o.mem) return []
++			const up = o.uptime || 0
++			const fan = o.fan || {}
++			const temps = (o.disks || []).filter(d => !d.standby && d.temperature).map(d => d.temperature)
++			return [
++				{ k: 'Laufzeit', v: `${Math.floor(up / 86400)} T ${Math.floor(up % 86400 / 3600)} h ${Math.floor(up % 3600 / 60)} min`, s: 'Last ' + o.load },
++				{ k: 'Arbeitsspeicher', v: `${this.size(o.mem.used)} / ${this.size(o.mem.total)}`, s: `Swap frei ${this.size(o.mem.swapFree)}` },
++				{ k: 'Lüfter', v: fan.rpm ? `${fan.rpm} U/min` : '–', s: fan.pwm !== undefined ? `Stufe ${Math.round(fan.pwm / 255 * 100)} %` : '' },
++				{ k: 'Plattentemperatur', v: temps.length ? Math.max(...temps) + ' °C' : 'alle schlafen', s: temps.length ? `min ${Math.min(...temps)} °C` : '' },
++				...(o.volumes || []).map(v => ({ k: v.path, v: `${this.size(v.used)} / ${this.size(v.size)}`, s: `${v.dev} · frei ${this.size(v.avail)}` })),
++				...(o.net || []).map(n => ({ k: n.name, v: n.state === 'up' ? 'verbunden' : n.state, s: `↑ ${this.size(n.bytesSent)} · ↓ ${this.size(n.bytesRecv)}` }))
++			]
++		}
++	},
++	mounted () {
++		this.loadOverview()
++		this.timer = setInterval(() => { if (this.tab === 0 || this.tab === 1) this.loadOverview() }, 5000)
++	},
++	beforeDestroy () { clearInterval(this.timer) },
++	methods: {
++		size (b) {
++			if (!b) return '0 B'
++			const u = ['B', 'KB', 'MB', 'GB', 'TB']
++			let i = 0
++			while (b >= 1024 && i < u.length - 1) { b /= 1024; i++ }
++			return `${b.toFixed(i > 1 ? 1 : 0)} ${u[i]}`
++		},
++		toast (msg, type = 'is-success') { this.$buefy.toast.open({ message: msg, type }) },
++		async call (fn) {
++			try {
++				const r = await fn()
++				if (r.data.success !== 200) { this.toast(r.data.message || 'Fehler', 'is-danger'); return null }
++				return r.data.data
++			} catch (e) {
++				this.toast(e.response?.data?.message || e.message, 'is-danger')
++				return null
++			}
++		},
++		async loadOverview () { const d = await this.call(() => api.get('/rs812/overview')); if (d) this.ov = d },
++		onTab (t) {
++			if (t === 2) this.loadExports()
++			if (t === 3) this.loadServices()
++			if (t === 5 && !this.logText) this.showLogs('')
++		},
++		async smart (dev) { this.smartText = 'Lese SMART …'; this.smartText = await this.call(() => api.get('/rs812/smart/' + dev)) || '' },
++		async loadExports () {
++			const d = await this.call(() => api.get('/rs812/exports'))
++			if (d) { this.exportsText = d.content; this.exportsActive = d.active }
++		},
++		async saveExports () {
++			this.busy = true
++			const d = await this.call(() => api.put('/rs812/exports', { content: this.exportsText }))
++			this.busy = false
++			if (d) { this.toast('Freigaben übernommen'); this.loadExports() }
++		},
++		async loadServices () { this.services = await this.call(() => api.get('/rs812/services')) || [] },
++		async svc (name, action) {
++			const d = await this.call(() => api.post(`/rs812/services/${name}/${action}`))
++			if (d) { this.toast(`${name}: ${action} ok`); setTimeout(this.loadServices, 800) }
++		},
++		async checkUpdates () {
++			this.busy = true
++			this.updates = await this.call(() => api.post('/rs812/updates/check')) || []
++			this.busy = false
++			if (!this.updates.length) this.toast('Alles aktuell')
++		},
++		async followJob (id) {
++			this.jobId = id
++			this.jobRunning = true
++			const tick = async () => {
++				const j = await this.call(() => api.get('/rs812/jobs/' + id))
++				if (!j) { this.jobRunning = false; return }
++				this.jobOut = j.output
++				if (j.running) setTimeout(tick, 1500)
++				else {
++					this.jobRunning = false
++					this.toast(j.exit_code === 0 ? `${j.title}: fertig` : `${j.title}: Fehler (${j.exit_code})`, j.exit_code === 0 ? 'is-success' : 'is-danger')
++				}
++			}
++			tick()
++		},
++		async installUpdates () { const id = await this.call(() => api.post('/rs812/updates/install')); if (id) { this.updates = []; this.followJob(id) } },
++		async installPkg () { const id = await this.call(() => api.post('/rs812/apt/install', { packages: this.pkg })); if (id) this.followJob(id) },
++		async showLogs (unit, kernel) {
++			this.tab = 5
++			this.logText = 'Lade …'
++			const q = []
++			if (unit) q.push('unit=' + encodeURIComponent(unit))
++			if (kernel) q.push('kernel=1')
++			this.logText = await this.call(() => api.get('/rs812/logs' + (q.length ? '?' + q.join('&') : ''))) || ''
++		},
++		power (action) {
++			this.$buefy.dialog.confirm({
++				title: action === 'reboot' ? 'Neu starten?' : 'Herunterfahren?',
++				message: action === 'reboot' ? 'Die NAS startet neu (ca. 2–4 Minuten). Freigaben sind so lange weg.' : 'Die NAS schaltet sich aus. Einschalten nur am Gerät.',
++				confirmText: action === 'reboot' ? 'Neu starten' : 'Herunterfahren',
++				cancelText: 'Abbrechen',
++				type: action === 'reboot' ? 'is-primary' : 'is-danger',
++				onConfirm: async () => { if (await this.call(() => api.post('/rs812/power/' + action))) this.toast('Wird ausgeführt …', 'is-warning') }
++			})
++		}
++	}
++}
++</script>
++
++<style lang="scss" scoped>
++.rs812-admin {
++	width: min(960px, 96vw);
++	.modal-card-body { max-height: 78vh; overflow-y: auto; }
++	.tab-item { padding-top: 0.75rem; }
++	.tile-box { background: hsla(208, 16%, 94%, 1); border-radius: 0.75rem; padding: 0.875rem 1rem; }
++	.tile-label { font-size: 0.75rem; color: #7a8a99; }
++	.tile-value { font-size: 1.25rem; font-weight: 600; color: #22313f; }
++	.tile-sub { font-size: 0.75rem; color: #8a99a8; }
++	.row-box { background: hsla(208, 16%, 96%, 1); border-radius: 0.75rem; padding: 0.75rem 1rem; margin-bottom: 0.5rem; }
++	.sub-head { font-weight: 600; margin: 1.25rem 0 0.5rem; }
++	.log-box { background: #101820; color: #d6e2ee; border-radius: 0.5rem; padding: 0.75rem; font-size: 0.75rem; max-height: 40vh; overflow: auto; white-space: pre-wrap; }
++	.log-box.tall { max-height: 58vh; }
++	.dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 0.75rem; &.on { background: #2ecc71; } &.off { background: #c0c8d0; } }
++	::v-deep .mono { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; }
++}
++</style>
+diff --git a/src/views/Home.vue b/src/views/Home.vue
+index 455d5d3..3a3fa59 100644
+--- a/src/views/Home.vue
++++ b/src/views/Home.vue
+@@ -1,4 +1,5 @@
+ <script>
++import AdminPanel from '@/components/rs812/AdminPanel.vue'
+ import { nanoid } from 'nanoid'
+ import SearchBar from '@/components/SearchBar.vue'
+ import SideBar from '@/components/SideBar.vue'
+@@ -26,6 +27,7 @@ export default {
+   provide() {
+     return {
+       homeShowFiles: this.showFiles,
++      homeShowAdmin: this.showAdmin,
+     }
+   },
+   data() {
+@@ -81,6 +83,18 @@ export default {
+     this.$EventBus.$off('casaUI:openStorageManager')
+   },
+   methods: {
++    showAdmin() {
++      this.$buefy.modal.open({
++        parent: this,
++        component: AdminPanel,
++        hasModalCard: true,
++        customClass: 'storage-modal',
++        trapFocus: true,
++        canCancel: ['escape'],
++        scroll: 'keep',
++        animation: 'zoom-in',
++      })
++    },
+ 
+     /**
+      * @description: Get CasaOS Configs
+@@ -270,11 +284,7 @@ export default {
+               <!-- SearchBar End -->
+ 
+               <!-- core-service Start -->
+-              <section>
+-                <transition name="fade">
+-                  <CoreService />
+-                </transition>
+-              </section>
++              <!-- RS812: Werbekarten (Syncthing/Smart Home) entfernt -->
+               <!-- core-service End -->
+ 
+               <!-- Apps Start -->
