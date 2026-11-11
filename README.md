@@ -22,7 +22,7 @@ The result is called **RSRB** (RackStation ReBoot): its own `6.1.176-rsrb` kerne
 
 | | |
 |---|---|
-| Kernel | 6.1.176-rsrb (own slim config, XZ, 2.08 MB – fits the 2 MiB of `mtd1`) |
+| Kernel | two flavors, both fit the 2 MiB of `mtd1`: **`6.1.176-rsrb`** (core – only what a NAS needs is built in) and **`6.1.176-rsrb-full`** (+ memory cgroup, netfilter/NAT, WireGuard, IPv6, NTFS3, CIFS) |
 | Device tree | own `kirkwood-rs812.dts` (both LAN ports, PCIe SATA, fan, HDD LEDs) |
 | System | Debian 12 armel on `md0` (RAID1 of `sda1`–`sdc1`), swap `md1` (`sda2`–`sdc2`) |
 | Data | DSM volumes `md2`–`md4` (ext4) at `/volume1`–`/volume3` |
@@ -64,7 +64,7 @@ The result is called **RSRB** (RackStation ReBoot): its own `6.1.176-rsrb` kerne
 
 1. **Back up the flash** (under DSM via SSH): `cat /dev/mtdNro > mtdN.bin` for 0–6.
 2. **Serial console** on the console port (115200 8N1), e.g. PL2303 → `/dev/ttyUSB0` on the build machine.
-3. **Build the kernel:** `kernel/build.sh test` and `kernel/build.sh flash`.
+3. **Build the kernel:** `kernel/build.sh test`, `kernel/build.sh flash` (core) and/or `kernel/build.sh full`.
 4. **Build the root FS:** `rootfs/build-rootfs.sh /srv/rs812-root <out-flash>/modules/lib/modules`
    (adapt `interfaces`, `fstab`, `mdadm.conf`, `exports` to your UUIDs/IPs first).
 5. **Test without risk (TFTP + NFS root):** tftpd on the build machine, export a copy of the root FS via NFS.
@@ -83,7 +83,9 @@ The result is called **RSRB** (RackStation ReBoot): its own `6.1.176-rsrb` kerne
    (`<out-flash>/modules/lib/modules/6.1.176-rsrb`), then `install/flash-kernel.sh uImage-flash spi-nor-unlock.ko`.
 9. Reboot normally.
 10. **RSRB packages:** `curl -fsSL https://syntax-xxx.github.io/rsrb/setup.sh | sh`, then
-    `apt install rackpanel rsrb-neofetch rsrb-release`.
+    `apt install rsrb-rs812-full` (web UI, containers, full kernel) or `apt install rsrb-rs812-core` (barebone NAS).
+    Kernel updates come with apt; activate one with `rsrb-flash-kernel 6.1.176-rsrb-full` (or `-rsrb`) and a reboot.
+    Test a kernel first without flashing: copy `/usr/lib/rsrb/kernel/uImage-*` to your TFTP server and boot it as in step 7.
 
 ## Recovery
 
