@@ -5,6 +5,10 @@ durch ein normales **Debian 12 „bookworm“ (armel)** – **ohne USB-Stick**: 
 SPI-Flash an der Stelle des DSM-Kernels, das System auf Partition 1 aller Platten (RAID1).
 Die Daten-Volumes aus DSM (Partition 3) bleiben unverändert und werden weiterverwendet.
 
+> 🖥️ **Weboberfläche statt DSM:** [**RackPanel**](https://github.com/Syntax-XXX/rackpanel) – mein schlankes Management-Panel
+> für genau dieses Gerät (Speicher, SMART, RAID, Freigaben, Benutzer, Apps, Updates). Nach der Installation hier mit einer Zeile drauf:
+> `bash <(curl -fsSL https://raw.githubusercontent.com/Syntax-XXX/rackpanel/main/install.sh)`
+
 > ⚠️ Danach gibt es kein DSM mehr. Ohne serielle Konsole nicht nachmachen – sie ist der Rettungsweg.
 
 ## Ergebnis
@@ -15,7 +19,7 @@ Die Daten-Volumes aus DSM (Partition 3) bleiben unverändert und werden weiterve
 | Gerätebeschreibung | eigene `kirkwood-rs812.dts` (beide LAN-Ports, PCIe-SATA, Lüfter, HDD-LEDs) |
 | System | Debian 12 armel auf `md0` (RAID1 aus `sda1`–`sdc1`), Swap `md1` (`sda2`–`sdc2`) |
 | Daten | DSM-Volumes `md2`–`md4` (ext4) unter `/volume1`–`/volume3` |
-| Dienste | SSH, NFS-Server (v3), `apt`, Konsolen-Login auf `ttyS0` |
+| Dienste | SSH, NFS-Server (v3), `apt`, Konsolen-Login auf `ttyS0`, Weboberfläche [RackPanel](https://github.com/Syntax-XXX/rackpanel) |
 | Leise | `rs812-fan.service`: Lüfterstufe nach wärmster Platte · Platten-Standby nach 20 min |
 | RAM frei | ~420 MB (unter DSM ~190 MB) |
 | Durchsatz | ~30 MB/s per NFS – die Grenze von CPU/Netzwerkchip, unter DSM gleich |
