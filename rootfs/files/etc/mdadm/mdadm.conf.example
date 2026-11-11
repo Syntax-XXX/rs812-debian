@@ -1,0 +1,6 @@
+# RS812: System-RAID (Partition 1, 0.90 für den Kernel-Start) + Swap (Partition 2) + Daten-Volumes aus DSM
+HOMEHOST <ignore>
+MAILADDR root
+ARRAY /dev/md2 metadata=1.2 UUID=1b168312:4842004c:24da95ee:7e1b3d3b
+ARRAY /dev/md3 metadata=1.2 UUID=37f35b53:72774318:e420791a:64b52ce6
+ARRAY /dev/md4 metadata=1.2 UUID=dc95d506:3872644a:c5bfd68b:1133a45d

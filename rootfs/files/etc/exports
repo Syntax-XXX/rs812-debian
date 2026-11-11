@@ -1,0 +1,4 @@
+# wie unter DSM: pve1 (192.168.50.2), pve2 (192.168.50.3), selfhost (Git)
+/volume1/PVE-Volume1   192.168.50.2(rw,async,no_wdelay,no_subtree_check,insecure,all_squash,anonuid=1024,anongid=100) 192.168.50.3(rw,async,no_wdelay,no_subtree_check,crossmnt,all_squash,anonuid=1024,anongid=100)
+/volume3/PVE-Volume-3  192.168.50.2(rw,async,no_wdelay,no_subtree_check,crossmnt,insecure,all_squash,anonuid=1024,anongid=100) 192.168.50.3(rw,async,no_wdelay,no_subtree_check,crossmnt,all_squash,anonuid=1024,anongid=100)
+/volume2/Git           10.40.32.108(rw,async,no_wdelay,no_subtree_check,no_root_squash) 192.168.50.2(rw,async,no_subtree_check,insecure,all_squash,anonuid=1024,anongid=100) 192.168.50.3(rw,async,no_subtree_check,insecure,all_squash,anonuid=1024,anongid=100)

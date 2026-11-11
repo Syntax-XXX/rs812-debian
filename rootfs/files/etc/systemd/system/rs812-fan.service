@@ -1,0 +1,11 @@
+[Unit]
+Description=RS812 Lüfterregelung nach Plattentemperatur
+After=local-fs.target
+
+[Service]
+ExecStart=/usr/local/sbin/rs812-fan
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

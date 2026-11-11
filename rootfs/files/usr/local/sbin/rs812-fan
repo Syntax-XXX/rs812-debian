@@ -1,0 +1,28 @@
+#!/bin/bash
+# RS812-Lüfterregelung: wärmste Platte bestimmt die Stufe des gpio-fan (pwm1 0..255).
+# Schlafende Platten werden nicht geweckt (smartctl -n standby). Ohne Messwert: mittlere Stufe.
+set -u
+F=$(grep -l '^gpio_fan$' /sys/class/hwmon/hwmon*/name 2>/dev/null | head -1 | xargs -r dirname)
+[ -n "$F" ] || { modprobe gpio_fan; sleep 2; F=$(grep -l '^gpio_fan$' /sys/class/hwmon/hwmon*/name | head -1 | xargs -r dirname); }
+[ -n "$F" ] || { echo "kein gpio_fan gefunden"; exit 1; }
+echo 1 > "$F/pwm1_enable"
+last=-1
+while true; do
+  max=0; awake=0
+  for d in /dev/sd[a-z]; do
+    t=$(smartctl -n standby -A "$d" 2>/dev/null | awk '$1==194 || $1==190 {print $10; exit}')
+    [ -n "$t" ] && { awake=1; [ "$t" -gt "$max" ] && max=$t; }
+  done
+  if   [ "$awake" -eq 0 ]; then pwm=36     # alle Platten schlafen: leiseste Stufe
+  elif [ "$max" -lt 36 ]; then pwm=36      # kühl: leise
+  elif [ "$max" -lt 40 ]; then pwm=73
+  elif [ "$max" -lt 44 ]; then pwm=109
+  elif [ "$max" -lt 48 ]; then pwm=146
+  elif [ "$max" -lt 52 ]; then pwm=182
+  else pwm=255; fi                         # heiß: volle Drehzahl
+  if [ "$pwm" != "$last" ]; then
+    echo "$pwm" > "$F/pwm1"; last=$pwm
+    echo "Platten max ${max}°C (wach: $awake) -> pwm $pwm, $(cat $F/fan1_input) U/min"
+  fi
+  sleep 60
+done

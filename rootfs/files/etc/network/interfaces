@@ -1,0 +1,15 @@
+auto lo
+iface lo inet loopback
+
+# Port 1 – Heimnetz (wie unter DSM)
+auto eth0
+iface eth0 inet static
+    hwaddress ether 00:11:32:1f:8e:b9
+    address 10.40.32.63/24
+    gateway 10.40.32.1
+
+# Port 2 – Direktverbindung zu pve2 (wie unter DSM)
+auto eth1
+iface eth1 inet static
+    hwaddress ether 00:11:32:1f:8e:ba
+    address 192.168.50.1/24
