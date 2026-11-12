@@ -29,7 +29,8 @@ The result is called **RSRB** (RackStation ReBoot): its own `6.1.176-rsrb` kerne
 | Services | SSH, NFS server (v3), `apt`, console login on `ttyS0`, web UI [RackPanel](https://github.com/Syntax-XXX/rackpanel) |
 | Quiet | `rs812-fan.service`: fan level follows the hottest disk · disk standby after 20 min |
 | Free RAM | ~420 MB (~190 MB under DSM) |
-| Throughput | ~30 MB/s over NFS – the limit of CPU/network chip, same as under DSM |
+| Boot | ~40 s to login (kernel 3.7 s) |
+| Throughput | iperf3 over LAN: **~920 Mbit/s sending, ~480 Mbit/s receiving** (receiving is CPU-bound) · disks ~115–130 MB/s sequential each, ~175 MB/s all three together (CPU-bound too) – measured 2026-11-12 |
 
 ## What we learned about the hardware
 
@@ -54,9 +55,18 @@ The result is called **RSRB** (RackStation ReBoot): its own `6.1.176-rsrb` kerne
 - **Device tree:** mainline `kirkwood-rs411.dts` is called "RS411 RS812", but:
   - the internal SATA controller uses mpp20/21 → **LAN 2 (eth1) dies** → disable `&sata`,
     the disks sit on the PCIe controller 88SX7042 (`&pcie1`) anyway;
-  - fan variant `-3` clashes on mpp44 with the HDD LEDs → variant `gpio-fan-100-15-35-1`.
+  - fan variant `-3` clashes on mpp44 with the HDD LEDs → variant `gpio-fan-100-15-35-1`, **without its
+    alarm GPIO**: on the RS812 mpp35 toggles with the fan (pulses), so every edge was an interrupt plus a
+    uevent – udev never settled, boot waited 2 minutes and the kernel finally disabled the IRQ.
 - **DSM superblocks** of `md0`/`md1` are 0.90 big-endian – Debian doesn't recognise them (fine, they get replaced).
   The data RAIDs (1.2) are recognised right away.
+- **Performance:** the single 1.6 GHz ARMv5 core is the limit everywhere – ARMv5 has no cache-coherent DMA,
+  so every disk and network buffer needs cache maintenance by the CPU (165 MB/s direct disk reads = 91 % CPU).
+  What helped (measured, set by `rsrb-rs812-hw`): RX interrupt coalescing 100 µs instead of 250 µs
+  (receive ~390 → ~480 Mbit/s, send 888 → 917 Mbit/s) and 4 MiB read-ahead on the data arrays (file reads
+  +8–13 %). Bigger RX rings didn't help. Don't change ring sizes at runtime (`ethtool -G`): on 6.1 that led to
+  TX queue timeouts under load (port reset, 3 s without link). A client with a USB 2.0 network adapter caps you
+  at ~300 Mbit/s – use USB 3 or onboard LAN.
 - **MACs:** U-Boot sets a Marvell default MAC; the real Synology MACs are in `mtd3` → set them with
   `hwaddress` in `/etc/network/interfaces`.
 

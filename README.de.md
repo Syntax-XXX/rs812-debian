@@ -29,7 +29,8 @@ Das Ergebnis heißt **RSRB** (RackStation ReBoot): eigener Kernel `6.1.176-rsrb`
 | Dienste | SSH, NFS-Server (v3), `apt`, Konsolen-Login auf `ttyS0`, Weboberfläche [RackPanel](https://github.com/Syntax-XXX/rackpanel) |
 | Leise | `rs812-fan.service`: Lüfterstufe nach wärmster Platte · Platten-Standby nach 20 min |
 | RAM frei | ~420 MB (unter DSM ~190 MB) |
-| Durchsatz | ~30 MB/s per NFS – die Grenze von CPU/Netzwerkchip, unter DSM gleich |
+| Boot | ~40 s bis zum Login (Kernel 3,7 s) |
+| Durchsatz | iperf3 übers LAN: **~920 Mbit/s senden, ~480 Mbit/s empfangen** (Empfangen ist CPU-gebunden) · Platten je ~115–130 MB/s sequenziell, alle drei zusammen ~175 MB/s (ebenfalls CPU-gebunden) – gemessen am 12.11.2026 |
 
 ## Hardware-Erkenntnisse
 
@@ -54,9 +55,18 @@ Das Ergebnis heißt **RSRB** (RackStation ReBoot): eigener Kernel `6.1.176-rsrb`
 - **Device Tree:** Mainline `kirkwood-rs411.dts` heißt zwar „RS411 RS812“, aber:
   - der interne SATA-Controller belegt mpp20/21 → **LAN 2 (eth1) fällt aus** → `&sata` deaktivieren,
     die Platten hängen ohnehin am PCIe-Controller 88SX7042 (`&pcie1`);
-  - Lüfter-Variante `-3` kollidiert auf mpp44 mit den HDD-LEDs → Variante `gpio-fan-100-15-35-1`.
+  - Lüfter-Variante `-3` kollidiert auf mpp44 mit den HDD-LEDs → Variante `gpio-fan-100-15-35-1`, **ohne deren
+    Alarm-GPIO**: Auf der RS812 wechselt mpp35 im Takt des Lüfters (Impulse), jede Flanke war ein Interrupt plus
+    ein uevent – udev kam nie zur Ruhe, der Boot wartete 2 Minuten und der Kernel schaltete den IRQ irgendwann ab.
 - **DSM-Superblöcke** von `md0`/`md1` sind 0.90 in Big-Endian – Debian erkennt sie nicht (egal, werden ersetzt).
   Die Daten-RAIDs (1.2) erkennt Debian sofort.
+- **Performance:** Der eine ARMv5-Kern mit 1,6 GHz ist überall die Grenze – ARMv5 hat keine cache-kohärente DMA,
+  jeder Platten- und Netzwerkpuffer braucht Cache-Pflege durch die CPU (165 MB/s Direct-Read von Platte = 91 % CPU).
+  Was geholfen hat (gemessen, setzt `rsrb-rs812-hw`): RX-Interrupt-Coalescing 100 µs statt 250 µs
+  (Empfangen ~390 → ~480 Mbit/s, Senden 888 → 917 Mbit/s) und 4 MiB Read-Ahead auf den Daten-Arrays
+  (Datei-Lesen +8–13 %). Größere RX-Ringe brachten nichts. Ringgrößen nicht zur Laufzeit ändern (`ethtool -G`):
+  unter 6.1 führte das unter Last zu TX-Queue-Timeouts (Port-Reset, 3 s ohne Link). Ein Client mit
+  USB-2.0-Netzwerkadapter begrenzt auf ~300 Mbit/s – USB 3 oder Onboard-LAN nehmen.
 - **MACs:** U-Boot setzt eine Marvell-Default-MAC; die echten Synology-MACs stehen in `mtd3` → in
   `/etc/network/interfaces` per `hwaddress` setzen.
 
