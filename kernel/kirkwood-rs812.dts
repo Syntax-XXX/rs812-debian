@@ -3,7 +3,8 @@
  * Synology RS812 (Marvell 88F6282, 512 MB, 4x SATA via PCIe 88SX7042, 2x GbE)
  * Based on kirkwood-rs411.dts ("RS411 RS812"), plus PCIe SATA like the DS411.
  * Internal SATA controller off: it would take mpp20/21, which eth1 (LAN 2) needs.
- * Fan: variant -1 (alarm only mpp35); -3 clashes with the HDD LEDs on mpp44.
+ * Fan: variant -1 without its alarm: on the RS812 mpp35 toggles with the fan (tach pulses), so the
+ * "alarm" fired an IRQ + uevent per edge – udev never settled and boot waited 2 min. -3 clashes with mpp44.
  */
 /dts-v1/;
 
@@ -27,6 +28,8 @@
 
 	gpio-fan-100-15-35-1 {
 		status = "okay";
+		pinctrl-0 = <&pmx_fanctrl_15 &pmx_fanctrl_16 &pmx_fanctrl_17>;
+		/delete-property/ alarm-gpios;
 	};
 
 	gpio-leds-hdd-36 {
