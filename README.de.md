@@ -22,15 +22,16 @@ Das Ergebnis heißt **RSRB** (RackStation ReBoot): eigener Kernel `6.1.176-rsrb`
 
 | | |
 |---|---|
-| Kernel | zwei Flavors, beide passen in die 2 MiB von `mtd1`: **`6.1.176-rsrb`** (Core – fest eingebaut nur, was ein NAS braucht) und **`6.1.176-rsrb-full`** (+ memory-cgroup, Netfilter/NAT, WireGuard, IPv6, NTFS3, CIFS) |
-| Gerätebeschreibung | eigene `kirkwood-rs812.dts` (beide LAN-Ports, PCIe-SATA, Lüfter, HDD-LEDs) |
+| Kernel | zwei Flavors, beide passen in die 2 MiB von `mtd1`: **`6.1.176-rsrb`** (Core – nur, was ein NAS braucht, auf Tempo getunt: der schnellste) und **`6.1.176-rsrb-full`** (+ memory-cgroup für Container-Limits, Netfilter/NAT, WireGuard, IPv6, NTFS3, CIFS – die memory-cgroup kostet ~20 % Schreibtempo) |
+| Gerätebeschreibung | eigene `kirkwood-rs812.dts` (beide LAN-Ports, PCIe-SATA, Lüfter, HDD-LEDs, Mikrocontroller-UART, Ricoh-RTC) |
 | System | Debian 12 armel auf `md0` (RAID1 aus `sda1`–`sdc1`), Swap `md1` (`sda2`–`sdc2`) |
 | Daten | DSM-Volumes `md2`–`md4` (ext4) unter `/volume1`–`/volume3` |
 | Dienste | SSH, NFS-Server (v3), `apt`, Konsolen-Login auf `ttyS0`, Weboberfläche [RackPanel](https://github.com/Syntax-XXX/rackpanel) |
+| Front-Panel | `rs812-panel.service`: Platten-LEDs (grün, blinken bei Zugriff, orange bei SMART-Fehler), Status-LED grün / orange blinkend bei Problemen, Power-LED, echte Lüfterdrehzahl |
 | Leise | `rs812-fan.service`: Lüfterstufe nach wärmster Platte · Platten-Standby nach 20 min |
 | RAM frei | ~420 MB (unter DSM ~190 MB) |
 | Boot | ~40 s bis zum Login (Kernel 3,7 s) |
-| Durchsatz | iperf3 übers LAN: **~920 Mbit/s senden, ~480 Mbit/s empfangen** (Empfangen ist CPU-gebunden) · Platten je ~115–130 MB/s sequenziell, alle drei zusammen ~175 MB/s (ebenfalls CPU-gebunden) – gemessen am 12.11.2026 |
+| Durchsatz | NFS von einem Server mit Intel-Karte: **~50 MB/s lesen, ~37 MB/s schreiben** (vor dem Tuning 38/27) · iperf3 ~940 Mbit/s senden, ~555 Mbit/s empfangen · Platte ~163 MB/s lesen, ~97 MB/s schreiben – alles CPU-gebunden, gemessen am 12.11.2026 |
 
 ## Hardware-Erkenntnisse
 
@@ -62,11 +63,30 @@ Das Ergebnis heißt **RSRB** (RackStation ReBoot): eigener Kernel `6.1.176-rsrb`
   Die Daten-RAIDs (1.2) erkennt Debian sofort.
 - **Performance:** Der eine ARMv5-Kern mit 1,6 GHz ist überall die Grenze – ARMv5 hat keine cache-kohärente DMA,
   jeder Platten- und Netzwerkpuffer braucht Cache-Pflege durch die CPU (165 MB/s Direct-Read von Platte = 91 % CPU).
-  Was geholfen hat (gemessen, setzt `rsrb-rs812-hw`): RX-Interrupt-Coalescing 100 µs statt 250 µs
-  (Empfangen ~390 → ~480 Mbit/s, Senden 888 → 917 Mbit/s) und 4 MiB Read-Ahead auf den Daten-Arrays
-  (Datei-Lesen +8–13 %). Größere RX-Ringe brachten nichts. Ringgrößen nicht zur Laufzeit ändern (`ethtool -G`):
-  unter 6.1 führte das unter Last zu TX-Queue-Timeouts (Port-Reset, 3 s ohne Link). Ein Client mit
-  USB-2.0-Netzwerkadapter begrenzt auf ~300 Mbit/s – USB 3 oder Onboard-LAN nehmen.
+  Gemessene Gewinne (A/B auf der Hardware, Client pve1 mit Intel igb, NFS Ende zu Ende):
+
+  | Änderung | NFS schreiben | NFS lesen |
+  |---|---|---|
+  | vorher (6.1.176-4) | 27,5 MB/s | 38,5 MB/s |
+  | + keine memory-cgroup (Core), Härtung/Debug aus (`INIT_ON_ALLOC`, `HARDENED_USERCOPY`, `DEBUG_LIST`, Stack-Protector, PSI), `PREEMPT_NONE`, `HZ=100` | 31,9 | 50,1 |
+  | + `-O2` statt `-Os` für TCP/IPv4, Ethernet-Treiber, md, ext4, jbd2, mm (+ Module nfsd/sunrpc) | **36,6** | **50,0** |
+
+  `INIT_ON_ALLOC` allein hat jede Page-Cache-Seite und jeden Netzwerkpuffer genullt; die memory-cgroup verbucht
+  jede Seite (`cgroup.memory=nokmem,nosocket` hilft nicht). `-O2` überall wäre 110 KB zu groß für den Flash; die
+  gewählten Verzeichnisse bringen dasselbe und passen (8 KB frei). Gesetzt in `build.sh` (`O2_DIRS`).
+  Laufzeit-Tuning in `rsrb-rs812-hw`: RX-Interrupt-Coalescing 100 µs statt 250 µs (Empfangen +20 %) und 4 MiB
+  Read-Ahead auf den Daten-Arrays (Datei-Lesen +8–13 %). Größere RX-Ringe brachten nichts. Ringgrößen nicht zur
+  Laufzeit ändern (`ethtool -G`): unter 6.1 führte das unter Last zu TX-Queue-Timeouts. Ein Client mit
+  USB-2.0-Netzwerkadapter (oder ein USB-C-Dock, das seine schnellen Leitungen für einen Monitor braucht) begrenzt auf ~300 Mbit/s.
+- **Link nach Neustart:** Nach manchen Kernel-Wechseln sah der 88E1116R-PHY den Switch, schloss das Gigabit-Training
+  aber nie ab; `ethtool -r` behebt es, deshalb startet `rsrb-rs812-hw` die Aushandlung neu, wenn 10 s nach ifup kein Link da ist.
+- **Front-Panel:** LEDs, Summer und Power-Taste hängen an einem Mikrocontroller an UART1 (`/dev/ttyS1`, 9600 8N1).
+  Codes wie in DSMs eigenen Skripten: `4` Power-LED an, `6` aus, `7` Status-LED aus, `8` grün, `9` grün blinkend,
+  `:` orange, `;` orange blinkend; `1` schaltet aus (sendet der Kernel-Treiber `synology,power-off`). Die 2×4
+  Platten-LEDs sind GPIOs (`synology:green|amber:hddN`). mpp35 trägt die Drehzahl-Impulse des Lüfters (2 pro
+  Umdrehung) – daran erkennt DSMs `FanStatusMapping`, dass er läuft; eine Alarmleitung ist es nicht.
+- **RTC:** ein Ricoh RS5C372A auf I²C 0x32 (`i2cdetect`; DSMs `synobios` hat `rtc_ricoh_*`), nicht der Seiko
+  S-35390A auf 0x30, den der Mainline-RS411-Tree einschaltet.
 - **MACs:** U-Boot setzt eine Marvell-Default-MAC; die echten Synology-MACs stehen in `mtd3` → in
   `/etc/network/interfaces` per `hwaddress` setzen.
 

@@ -37,6 +37,11 @@
 	};
 };
 
+/* UART1 talks to the microcontroller (power/status LEDs, buzzer, power button), 9600 8N1, like under DSM */
+&uart1 {
+	status = "okay";
+};
+
 &eth1 {
 	status = "okay";
 };
@@ -45,7 +50,8 @@
 	status = "disabled";
 };
 
-&s35390a {
+/* the RS812 has a Ricoh RS5C372A at 0x32 (i2cdetect, DSM's synobios has rtc_ricoh_*), not the RS411's Seiko */
+&rs5c372 {
 	status = "okay";
 };
 

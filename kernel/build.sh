@@ -12,6 +12,14 @@ cp "$HERE/kirkwood-rs812.dts" linux-$V/arch/arm/boot/dts/
 grep -q kirkwood-rs812.dtb linux-$V/arch/arm/boot/dts/Makefile || sed -i 's/\tkirkwood-rs411.dtb \\/\tkirkwood-rs411.dtb \\\n\tkirkwood-rs812.dtb \\/' linux-$V/arch/arm/boot/dts/Makefile
 mkdir -p out-$VAR
 case "$VAR" in flash) CFG=rs812-flash ;; full) CFG=rs812-full ;; test) CFG=rs812-nfsroot-test ;; *) echo "usage: build.sh flash|full|test"; exit 1 ;; esac
+# -O2 instead of the -Os of the rest for the hot paths that measurably pay off (NFS: TCP receive, ext4 +
+# page cache, RAID, journal; nfsd/sunrpc are modules, so free). Everything -O2 doesn't fit the 2 MiB.
+# Measured on the RS812 (pve1 -> NAS, 2026-11-12) – see README. Override: O2_DIRS="…" ./build.sh …
+O2_FAST="net/ipv4 drivers/net/ethernet/marvell drivers/md net/sunrpc fs/nfsd"
+[ "$VAR" = full ] && O2_DEF=$O2_FAST || O2_DEF="$O2_FAST fs/ext4 fs/jbd2 mm"   # full is bigger: ext4/mm -O2 don't fit
+O2_DIRS=${O2_DIRS:-$O2_DEF}
+grep -rl --include=Makefile "RSRB-O2" linux-$V | xargs -r sed -i '/RSRB-O2/d'
+for d in $O2_DIRS; do printf '\nccflags-y += -O2 # RSRB-O2\n' >> linux-$V/$d/Makefile; done
 cp "$HERE/$CFG.config" out-$VAR/.config
 M="make -C linux-$V ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- O=$W/out-$VAR"
 $M olddefconfig >/dev/null
